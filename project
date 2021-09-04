@@ -1,0 +1,69 @@
+::Dont merge 
+https://bitbucket.org/pgbitbucket/rc-stage-terraform/pull-requests/494/story-tf-version-upgrade
+
+There are couple of changes in other files.That they are not commit here, because since it a aws poc account for testing purpose.
+
+Terraform migration project (terraform, terragrunt and AWS provider) 
+ current version
+Terraform 0.11
+Terragrunt  = 0.14
+AWS = 2.75
+
+ To be migrate 
+Terraform = 0.11 to 0.12,0.13 and later 1.0
+Terragrunt = 0.31
+AWS =3.55
+
+Upgrade journey
+1.Terragrunt= 0.14 - 0.31
+
+Terragrunt is a thin wrapper for Terraform that provides extra tools for working with multiple Terraform modules, storing  remote state, and locking.
+
+If  execute terragrunt apply internally it executes the terraform only, in addition s3 , runs as remote state and it can handle multiple variable files  can include and add .so , dependance can be managed in different levels 
+For eg: application variable and global variables are placed in different place.
+
+Terraform Version	Terragrunt Version
+1.0.x           	>= 0.31.0
+0.15.x           	>= 0.29.0
+0.14.x          	>= 0.27.0
+0.13.x          	>= 0.25.0
+0.12.x          	0.19.0 - 0.24.4
+0.11.x          	0.14.0 - 0.18.
+
+
+
+
+Changes
+
+1. New file created terrragrunt.hcl .where we moved include block from terraform.tfvars to terragrunt.hcl
+2. When we upgraded to 0.12 terraform version terraform has strict evaluation terragrunt code code be in different file before that we have include in terraform file it self
+
+#terragrunt.hcl
+include {
+    path = "${find_in_parent_folders("common.tfvars")}"
+  }
+Terraform upgrade 0.11 to 0.12 
+ 1. Here,  only terraform variable are declared in terraform.vtvars 
+ 2. There were syntax changes
+   before                                                                                               after 
+   terragrunt = {                                                                                    
+          include {                                                                                        include { 
+             path = “${find_in_parent_folders(“common.tfvars”)                                                   path =  “$(find_in_parent_folders(“common.tfvars”) 
+    }                                                                                                             }
+  } 
+ 3. In application variable.tf file - syntax change ( no quotation marks need and string is added to list) 
+   before                                after
+   type = “list(string)”                 type = list(string) 
+ 4. In application main.tf syntax change 
+     before                                                                                                     after 
+       availability_zones      = "${var.availability_zones}"                                                     availability_zones      = var.availability_zones
+ 5. for block no need of “=“ sign . For tags we should use “=“ sign.
+ 6. Newly version.tf is added here
+ 7. There was changes in child modules too. Like , in point 3 and 4.    
+
+ Terraform upgraded to 0.12 to 0.13
+  no changes here                                                                   
+
+Terraform upgraded to 0.13 to 1.0
+   Here, After switching to 1.0 we executed the application , for testing we added s3, vpc, subnets, security groups and image_id .It have executed successfully  
+ 
